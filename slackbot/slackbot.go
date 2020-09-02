@@ -19,7 +19,7 @@ func New(dataStore *datastore.DataStore) *slackBot {
 }
 
 func (s *slackBot) Handler(session *discordgo.Session, messageCreate *discordgo.MessageCreate) {
-	for key, value := range s.dataStore.Responses {
+	for key, value := range s.dataStore.Contents.Responses {
 		if !contains(messageCreate.Content, key) {
 			continue
 		}
@@ -27,23 +27,20 @@ func (s *slackBot) Handler(session *discordgo.Session, messageCreate *discordgo.
 		responseMessage := selectRandomEntry(value)
 
 		_, err := session.ChannelMessageSend(messageCreate.ChannelID, responseMessage)
-
-		log.Printf(`Returned message "%s"`, responseMessage)
-
 		if err != nil {
 			log.Print(err)
 		}
 
+		log.Printf(`trigger: "%s" response: "%s"`, key, responseMessage)
 		return
 	}
-
 }
 
 func contains(a string, b string) bool {
 	return strings.Contains(strings.ToLower(a), strings.ToLower(b))
 }
 
-func selectRandomEntry(list []string)  string {
+func selectRandomEntry(list []string) string {
 	rand.Seed(time.Now().Unix())
 
 	index := rand.Int() % len(list)

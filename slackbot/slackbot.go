@@ -1,12 +1,13 @@
 package slackbot
 
 import (
-	"github.com/bl1nk/discord-bot-without-a-fancy-name/datastore"
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/bl1nk/discgo/datastore"
+	"github.com/bwmarrin/discordgo"
 )
 
 type slackBot struct {

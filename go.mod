@@ -1,4 +1,4 @@
-module github.com/bl1nk/discord-bot-without-a-fancy-name
+module github.com/bl1nk/discgo
 
 go 1.15
 

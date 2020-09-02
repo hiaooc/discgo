@@ -1,2 +1,3 @@
-# discord-bot-without-a-fancy-name
-TODO: give it a name
+# discgo
+
+Discord bot because Jonas learns some go

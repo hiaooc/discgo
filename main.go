@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/bl1nk/discord-bot-without-a-fancy-name/datastore"
-	"github.com/bl1nk/discord-bot-without-a-fancy-name/slackbot"
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/bl1nk/discgo/datastore"
+	"github.com/bl1nk/discgo/slackbot"
+	"github.com/bwmarrin/discordgo"
 )
 
 var dataStorePath = flag.String("datastore", "", "Path to JSON file")

@@ -28,6 +28,9 @@ func main() {
 	if token == "" {
 		log.Fatal("Token needs to be configured via env variable BOT_TOKEN")
 	}
+	if *dataStorePath == "" {
+		log.Fatal("-datastore must not be empty")
+	}
 
 	discord, err := discordgo.New("Bot " + token)
 	if err != nil {

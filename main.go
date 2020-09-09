@@ -50,13 +50,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	handler := http.NewHandler(ds)
-	router := chi.NewRouter()
-	router.Get("/config", handler.ReadConfig)
-	router.Post("/config", handler.WriteConfig)
+	r := chi.NewRouter()
+
+	r.Route("/api", func(r chi.Router) {
+		handler := http.NewHandler(ds)
+		r.Get("/config", handler.ReadConfig)
+		r.Post("/config", handler.WriteConfig)
+	})
+
+	r.Route("/slackbot", func(r chi.Router) {
+		r.Get("/view", bot.ViewHandler)
+		r.Get("/edit", bot.EditHandler)
+	})
+
 	srv := ghttp.Server{
 		Addr:    *addr,
-		Handler: router,
+		Handler: r,
 	}
 
 	sc := make(chan os.Signal, 1)

@@ -49,9 +49,29 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go scheduledMessages()
+
 	log.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 	dg.Close()
+}
+
+func scheduledMessages() {
+	ticker := time.NewTicker(1 * time.Minute)
+	for {
+		select {
+		case <-ticker.C:
+			location, err := time.LoadLocation("Europe/Berlin")
+			if err != nil {
+				panic(err)
+			}
+
+			now := time.Now().In(location)
+			if now.Weekday() == time.Monday && now.Hour() == 10 && now.Minute() == 0 {
+				// Worauf freut ihr euch diese Woche besonders?
+			}
+		}
+	}
 }

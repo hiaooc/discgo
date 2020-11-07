@@ -23,8 +23,13 @@ var (
 )
 
 func ChangeTopic(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if strings.HasPrefix(m.Content, ";topic") {
-		newTopic := strings.TrimSpace(strings.TrimPrefix(m.ContentWithMentionsReplaced(), ";topic"))
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+
+	cmdPrefix := fmt.Sprintf("<@!%s> topic", s.State.User.ID)
+	if strings.HasPrefix(m.Content, cmdPrefix) {
+		newTopic := strings.TrimSpace(strings.TrimPrefix(m.Content, cmdPrefix))
 		log.Printf("setting channel topic for channel %s: %s", m.ChannelID, newTopic)
 		_, err := s.ChannelEditComplex(m.ChannelID, &discordgo.ChannelEdit{
 			Topic: newTopic,

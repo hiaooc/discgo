@@ -22,6 +22,48 @@ var (
 	addr          = flag.String("listen", ":8080", "Listen address")
 )
 
+func PinMessage(ds *discordgo.Session, event *discordgo.MessageReactionAdd) {
+	if event.UserID == ds.State.User.ID || event.MessageReaction.Emoji.Name != "📌" {
+		return
+	}
+
+	msg, err := ds.ChannelMessage(event.ChannelID, event.MessageID)
+	if err != nil {
+		log.Printf("get message state: %v\n", err)
+		return
+	}
+	if msg.Pinned {
+		return
+	}
+
+	if err := ds.ChannelMessagePin(event.ChannelID, event.MessageID); err != nil {
+		log.Printf("pin message: %v\n", err)
+		return
+	}
+}
+
+func UnpinMessage(ds *discordgo.Session, event *discordgo.MessageReactionRemove) {
+	if event.UserID == ds.State.User.ID || event.MessageReaction.Emoji.Name != "📌" {
+		return
+	}
+
+	msg, err := ds.ChannelMessage(event.ChannelID, event.MessageID)
+	if err != nil {
+		log.Printf("get message state: %v\n", err)
+		return
+	}
+	for _, r := range msg.Reactions {
+		if r.Emoji.Name == "📌" {
+			return
+		}
+	}
+
+	if err := ds.ChannelMessageUnpin(event.ChannelID, event.MessageID); err != nil {
+		log.Printf("unpin message: %v", err)
+		return
+	}
+}
+
 func ChangeTopic(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -70,6 +112,9 @@ func main() {
 	bot := slackbot.New(ds)
 	discord.AddHandler(bot.Handler)
 	discord.AddHandler(ChangeTopic)
+
+	discord.AddHandler(PinMessage)
+	discord.AddHandler(UnpinMessage)
 
 	err = discord.Open()
 	if err != nil {

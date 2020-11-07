@@ -7,6 +7,7 @@ import (
 	ghttp "net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bl1nk/discgo/datastore"
@@ -20,6 +21,25 @@ var (
 	dataStorePath = flag.String("datastore", "", "Path to JSON file")
 	addr          = flag.String("listen", ":8080", "Listen address")
 )
+
+func ChangeTopic(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if strings.HasPrefix(m.Content, ";topic") {
+		newTopic := strings.TrimSpace(strings.TrimPrefix(m.ContentWithMentionsReplaced(), ";topic"))
+		log.Printf("setting channel topic for channel %s: %s", m.ChannelID, newTopic)
+		_, err := s.ChannelEditComplex(m.ChannelID, &discordgo.ChannelEdit{
+			Topic: newTopic,
+		})
+		reaction := "✅"
+		if err != nil {
+			reaction = "🚫"
+			log.Printf("edit channel: %v\n", err)
+		}
+		err = s.MessageReactionAdd(m.ChannelID, m.Message.ID, reaction)
+		if err != nil {
+			log.Printf("add reaction: %v\n", err)
+		}
+	}
+}
 
 func main() {
 	flag.Parse()
@@ -44,6 +64,7 @@ func main() {
 
 	bot := slackbot.New(ds)
 	discord.AddHandler(bot.Handler)
+	discord.AddHandler(ChangeTopic)
 
 	err = discord.Open()
 	if err != nil {

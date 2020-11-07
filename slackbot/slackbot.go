@@ -19,6 +19,10 @@ func New(dataStore *datastore.DataStore) *slackBot {
 }
 
 func (s *slackBot) Handler(session *discordgo.Session, messageCreate *discordgo.MessageCreate) {
+	if messageCreate.Author.ID == session.State.User.ID {
+		return
+	}
+
 	for key, value := range s.dataStore.Contents.Responses {
 		if !contains(messageCreate.Content, key) {
 			continue

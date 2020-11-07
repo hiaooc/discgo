@@ -62,13 +62,13 @@ func scheduledMessages() {
 	ticker := time.NewTicker(1 * time.Minute)
 	for {
 		select {
-		case <-ticker.C:
+		case t := <-ticker.C:
 			location, err := time.LoadLocation("Europe/Berlin")
 			if err != nil {
 				panic(err)
 			}
 
-			now := time.Now().In(location)
+			now := t.In(location)
 			if now.Weekday() == time.Monday && now.Hour() == 10 && now.Minute() == 0 {
 				// Worauf freut ihr euch diese Woche besonders?
 			}

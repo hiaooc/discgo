@@ -11,6 +11,7 @@ import (
 
 	"github.com/bl1nk/discgo/datastore"
 	"github.com/bl1nk/discgo/http"
+	"github.com/bl1nk/discgo/messagerouter"
 	"github.com/bl1nk/discgo/slackbot"
 	"github.com/bwmarrin/discordgo"
 	"github.com/go-chi/chi"
@@ -19,6 +20,8 @@ import (
 var (
 	dataStorePath = flag.String("datastore", "", "Path to JSON file")
 	addr          = flag.String("listen", ":8080", "Listen address")
+
+	Router = messagerouter.New()
 )
 
 func main() {
@@ -32,7 +35,7 @@ func main() {
 		log.Fatal("-datastore must not be empty")
 	}
 
-	discord, err := discordgo.New("Bot " + token)
+	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,27 +46,32 @@ func main() {
 	}
 
 	bot := slackbot.New(ds)
-	discord.AddHandler(bot.Handler)
+	dg.AddHandler(bot.Handler)
+	dg.AddHandler(Router.OnMessageCreate)
 
-	err = discord.Open()
+	err = dg.Open()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	handler := http.NewHandler(ds)
-	router := chi.NewRouter()
-	router.Get("/config", handler.ReadConfig)
-	router.Post("/config", handler.WriteConfig)
+	r := chi.NewRouter()
+
+	r.Route("/api", func(r chi.Router) {
+		handler := http.NewHandler(ds)
+		r.Get("/config", handler.ReadConfig)
+		r.Post("/config", handler.WriteConfig)
+	})
+
 	srv := ghttp.Server{
 		Addr:    *addr,
-		Handler: router,
+		Handler: r,
 	}
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	go func() {
 		<-sc
-		discord.Close()
+		dg.Close()
 		srv.Close()
 	}()
 

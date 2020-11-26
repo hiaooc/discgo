@@ -7,6 +7,7 @@ import (
 	ghttp "net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strings"
 	"syscall"
 
@@ -69,9 +70,9 @@ func ChangeTopic(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	cmdPrefix := fmt.Sprintf("<@!%s> topic", s.State.User.ID)
-	if strings.HasPrefix(m.Content, cmdPrefix) {
-		newTopic := strings.TrimSpace(strings.TrimPrefix(m.Content, cmdPrefix))
+	cmdPrefix := regexp.MustCompile(fmt.Sprintf("^<@!?%s> topic", s.State.User.ID))
+	if cmdPrefix.MatchString(m.Content) {
+		newTopic := strings.TrimSpace(cmdPrefix.ReplaceAllLiteralString(m.Content, ""))
 		log.Printf("setting channel topic for channel %s: %s", m.ChannelID, newTopic)
 		_, err := s.ChannelEditComplex(m.ChannelID, &discordgo.ChannelEdit{
 			Topic: newTopic,

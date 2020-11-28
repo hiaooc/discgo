@@ -1,0 +1,9 @@
+{
+    "responses": {
+        "!decide": [
+            "✅",
+            "❌",
+            "🔄 Reply hazy, try again."
+        ]
+    }
+}

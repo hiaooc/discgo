@@ -6,5 +6,5 @@ A Discord bot written in Go.
 
 ```
 $ go build ./cmd/bot
-$ BOT_TOKEN=yourToken ./bot -datastore=yourDatastore.json
+$ BOT_TOKEN=yourToken ./bot -datastore=path/to/yourDatastore.json
 ```

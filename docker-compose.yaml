@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  bot:
+    image: "bot:latest"
+    build: "./"
+    ports:
+      - "8080"
+    environment:
+      - "BOT_TOKEN=${BOT_TOKEN}"
+    command:
+      - "-datastore=/config/config.json"
+    volumes:
+      - "./config:/config"

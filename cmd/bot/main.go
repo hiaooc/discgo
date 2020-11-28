@@ -42,9 +42,7 @@ func main() {
 	dg.AddHandler(handler.UnpinMessage)
 
 	replier := handler.NewReplier(ds)
-	dg.AddHandler(replier.AddReply)
-	dg.AddHandler(replier.RemoveReply)
-	dg.AddHandler(replier.Reply)
+	dg.AddHandler(replier.Handler)
 
 	err = dg.Open()
 	if err != nil {

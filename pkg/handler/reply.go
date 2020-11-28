@@ -23,14 +23,58 @@ func NewReplier(ds *datastore.DataStore) *Replier {
 	}
 }
 
-func (r *Replier) Reply(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (r *Replier) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
 
+	for userID, trigger := range r.waitingForUser {
+		if userID == m.Author.ID {
+			r.addReply(s, m, userID, trigger)
+			return
+		}
+	}
+
+	removeReplyTrigger := regexp.MustCompile(fmt.Sprintf(`^<@!?%s> remove`, s.State.User.ID))
+	if removeReplyTrigger.MatchString(m.Content) {
+		trigger := strings.TrimSpace(removeReplyTrigger.ReplaceAllLiteralString(m.Content, ""))
+		r.removeReply(s, m, trigger)
+		return
+	}
+
+	addReplyTrigger := regexp.MustCompile(fmt.Sprintf(`^<@!?%s> reply`, s.State.User.ID))
+	if addReplyTrigger.MatchString(m.Content) {
+		trigger := strings.TrimSpace(addReplyTrigger.ReplaceAllLiteralString(m.Content, ""))
+		r.addReplyTrigger(s, m, trigger)
+		return
+	}
+
+	r.reply(s, m)
+}
+
+func (r *Replier) addReply(s *discordgo.Session, m *discordgo.MessageCreate, userID, trigger string) {
+	delete(r.waitingForUser, userID)
+	replies := strings.Split(m.Content, "\n")
+	r.ds.Contents.Responses[trigger] = replies
+
+	err := r.ds.Save()
+	if err != nil {
+		log.Printf("save datastore: %v\n", err)
+		return
+	}
+
+	err = s.MessageReactionAdd(m.ChannelID, m.Message.ID, "✅")
+	if err != nil {
+		log.Printf("add reaction: %v\n", err)
+		return
+	}
+
+}
+
+func (r *Replier) reply(s *discordgo.Session, m *discordgo.MessageCreate) {
 	for k, v := range r.ds.Contents.Responses {
 		if strings.Contains(m.Content, k) {
-			_, err := s.ChannelMessageSend(m.ChannelID, selectReply(v))
+			_, err := s.ChannelMessageSend(m.ChannelID, v[rand.Int()%len(v)])
 			if err != nil {
 				log.Printf("send message: %v\n", err)
 				return
@@ -40,45 +84,8 @@ func (r *Replier) Reply(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func selectReply(replies []string) string {
-	return replies[rand.Int()%len(replies)]
-}
-
-func (r *Replier) AddReply(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-
-	for userID, trigger := range r.waitingForUser {
-		if userID == m.Author.ID {
-			delete(r.waitingForUser, userID)
-			replies := strings.Split(m.Content, "\n")
-			r.ds.Contents.Responses[trigger] = replies
-
-			err := r.ds.Save()
-			if err != nil {
-				log.Printf("save datastore: %v\n", err)
-				return
-			}
-
-			err = s.MessageReactionAdd(m.ChannelID, m.Message.ID, "✅")
-			if err != nil {
-				log.Printf("add reaction: %v\n", err)
-				return
-			}
-
-			return
-		}
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf(`^<@!?%s> reply`, s.State.User.ID))
-	if !re.MatchString(m.Content) {
-		return
-	}
-
-	trigger := strings.TrimSpace(re.ReplaceAllLiteralString(m.Content, ""))
+func (r *Replier) addReplyTrigger(s *discordgo.Session, m *discordgo.MessageCreate, trigger string) {
 	r.waitingForUser[m.Author.ID] = trigger
-
 	_, err := s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%s Sure! Reply with responses, one per line`, m.Author.Mention()))
 	if err != nil {
 		log.Printf("send message: %v\n", err)
@@ -86,17 +93,7 @@ func (r *Replier) AddReply(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func (r *Replier) RemoveReply(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-
-	re := regexp.MustCompile(fmt.Sprintf(`^<@!?%s> remove`, s.State.User.ID))
-	if !re.MatchString(m.Content) {
-		return
-	}
-
-	trigger := strings.TrimSpace(re.ReplaceAllLiteralString(m.Content, ""))
+func (r *Replier) removeReply(s *discordgo.Session, m *discordgo.MessageCreate, trigger string) {
 	delete(r.ds.Contents.Responses, trigger)
 	err := r.ds.Save()
 	if err != nil {

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bl1nk/discgo/datastore"
 	"github.com/bwmarrin/discordgo"
+	"github.com/hiaooc/discgo/pkg/datastore"
 )
 
 type slackBot struct {

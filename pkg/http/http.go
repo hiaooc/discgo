@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bl1nk/discgo/datastore"
+	"github.com/hiaooc/discgo/pkg/datastore"
 )
 
 type Handler struct {

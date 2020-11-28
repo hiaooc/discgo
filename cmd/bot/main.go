@@ -11,7 +11,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/hiaooc/discgo/pkg/datastore"
 	"github.com/hiaooc/discgo/pkg/handler"
-	"github.com/hiaooc/discgo/pkg/slackbot"
 )
 
 var (
@@ -38,9 +37,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	bot := slackbot.New(ds)
-	dg.AddHandler(bot.Handler)
 
 	dg.AddHandler(handler.ChangeTopic)
 	dg.AddHandler(handler.PinMessage)

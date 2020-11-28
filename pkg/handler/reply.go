@@ -63,12 +63,7 @@ func (r *Replier) addReply(s *discordgo.Session, m *discordgo.MessageCreate, use
 		return
 	}
 
-	err = s.MessageReactionAdd(m.ChannelID, m.Message.ID, "✅")
-	if err != nil {
-		log.Printf("add reaction: %v\n", err)
-		return
-	}
-
+	reactWithCheckmark(s, m.ChannelID, m.Message.ID)
 }
 
 func (r *Replier) reply(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -101,4 +96,5 @@ func (r *Replier) removeReply(s *discordgo.Session, m *discordgo.MessageCreate, 
 		return
 	}
 
+	reactWithCheckmark(s, m.ChannelID, m.Message.ID)
 }

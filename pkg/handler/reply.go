@@ -53,6 +53,10 @@ func (r *Replier) Handler(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func (r *Replier) addReply(s *discordgo.Session, m *discordgo.MessageCreate, userID, trigger string) {
+	if trigger == "" {
+		return
+	}
+
 	delete(r.waitingForUser, userID)
 	replies := strings.Split(m.Content, "\n")
 	r.ds.Contents.Responses[trigger] = replies
@@ -80,6 +84,9 @@ func (r *Replier) reply(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func (r *Replier) addReplyTrigger(s *discordgo.Session, m *discordgo.MessageCreate, trigger string) {
+	if trigger == "" {
+		return
+	}
 	r.waitingForUser[m.Author.ID] = trigger
 	_, err := s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%s Sure! Reply with responses, one per line`, m.Author.Mention()))
 	if err != nil {
@@ -89,6 +96,9 @@ func (r *Replier) addReplyTrigger(s *discordgo.Session, m *discordgo.MessageCrea
 }
 
 func (r *Replier) removeReply(s *discordgo.Session, m *discordgo.MessageCreate, trigger string) {
+	if trigger == "" {
+		return
+	}
 	delete(r.ds.Contents.Responses, trigger)
 	err := r.ds.Save()
 	if err != nil {

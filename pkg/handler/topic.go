@@ -21,14 +21,10 @@ func ChangeTopic(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, err := s.ChannelEditComplex(m.ChannelID, &discordgo.ChannelEdit{
 			Topic: newTopic,
 		})
-		reaction := "✅"
 		if err != nil {
-			reaction = "🚫"
-			log.Printf("edit channel: %v\n", err)
+			log.Printf("set topic: %v\n", err)
+			return
 		}
-		err = s.MessageReactionAdd(m.ChannelID, m.Message.ID, reaction)
-		if err != nil {
-			log.Printf("add reaction: %v\n", err)
-		}
+		reactWithCheckmark(s, m.ChannelID, m.Message.ID)
 	}
 }

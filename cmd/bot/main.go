@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -11,7 +10,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/hiaooc/discgo/pkg/datastore"
 	"github.com/hiaooc/discgo/pkg/handler"
-	"github.com/hiaooc/discgo/pkg/slackbot"
 )
 
 var (
@@ -39,19 +37,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	bot := slackbot.New(ds)
-	dg.AddHandler(bot.Handler)
-
 	dg.AddHandler(handler.ChangeTopic)
 	dg.AddHandler(handler.PinMessage)
 	dg.AddHandler(handler.UnpinMessage)
+
+	replier := handler.NewReplier(ds)
+	dg.AddHandler(replier.Handler)
 
 	err = dg.Open()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	log.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
